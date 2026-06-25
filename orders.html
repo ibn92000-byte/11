@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الطلبات الواردة | مركز التاجر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght=400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body class="text-slate-900 flex h-screen overflow-hidden bg-slate-50 relative">
+
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 z-40 hidden md:hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 right-0 w-64 bg-white border-l border-slate-200 shadow-sm flex flex-col z-50 transform translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-full">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex justify-center items-center shadow-sm">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-black text-slate-900 leading-tight">مركز التاجر</h1>
+                <p id="sidebarStoreName" class="text-sm text-blue-600 font-bold truncate max-w-[120px]">جاري التحميل...</p>
+            </div>
+        </div>
+        
+        <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+            <a href="merchant-dashboard.html" class="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">📊 لوحة القيادة</a>
+            <a href="products.html" class="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">📦 إدارة المنتجات</a>
+            <a href="orders.html" class="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-bold bg-blue-50 text-blue-700 border-r-4 border-blue-600 transition">🛒 الطلبات الواردة</a>
+            <a href="shipping.html" class="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">🚚 إدارة الشحن</a>
+            <a href="settings.html" class="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">⚙️ الإعدادات</a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="logout()" class="w-full text-right p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition font-bold">🚪 تسجيل الخروج</button>
+        </div>
+    </aside>
+
+    <div class="flex-grow flex flex-col min-w-0 overflow-hidden">
+        <header class="bg-white border-b border-slate-200 p-4 flex items-center justify-between md:hidden z-30">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex justify-center items-center shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
+                <span id="mobileStoreName" class="font-bold text-slate-800 text-sm truncate max-w-[150px]">جاري التحميل...</span>
+            </div>
+            <button onclick="toggleSidebar()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </header>
+
+        <main class="flex-grow overflow-y-auto p-4 md:p-8 relative">
+            <div class="mb-6 md:mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900">🛒 إدارة الطلبات الواردة</h2>
+                    <p class="text-slate-500 text-sm mt-1">تتبع مبيعاتك وحالات الشحن والتوصيل لزبائنك.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openOrderModal()" class="bg-blue-600 text-white hover:bg-blue-700 font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1">➕ إرسال طلب جديد</button>
+                    <button onclick="fetchOrders()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm">🔄 تحديث الطلبات</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="glass-card p-4 md:p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-500">إجمالي الطلبات</p>
+                    <h3 id="stats-total" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                </div>
+                <div class="glass-card p-4 md:p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-500">⏳ قيد الانتظار</p>
+                    <h3 id="stats-pending" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+                </div>
+                <div class="glass-card p-4 md:p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-500">✅ مكتملة ومستلمة</p>
+                    <h3 id="stats-completed" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="glass-card p-4 md:p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-500">❌ ملغية</p>
+                    <h3 id="stats-cancelled" class="text-2xl font-black text-rose-600 mt-1">0</h3>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl shadow-sm overflow-hidden bg-white">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                <th class="p-4">رقم الطلب</th>
+                                <th class="p-4">الزبون والمعلومات</th>
+                                <th class="p-4">المنتج المطلوب</th>
+                                <th class="p-4">الخيارات المختارة</th>
+                                <th class="p-4 text-center">الكمية</th>
+                                <th class="p-4">السعر الإجمالي (مع التوصيل)</th>
+                                <th class="p-4">حالة الطلب</th>
+                                <th class="p-4 text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
+                            <tr>
+                                <td colspan="8" class="p-8 text-center text-slate-400 font-normal">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <span class="animate-spin text-xl">⏳</span> جاري تحميل طلبياتك وفحص خيارات المنتجات...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="orderModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-slate-900">➕ إرسال طلب جديد (ربط المفاتيح)</h3>
+                <button onclick="closeOrderModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            </div>
+            <form id="newOrderForm" onsubmit="sendOrder(event)" class="space-y-4 text-sm font-semibold text-slate-700">
+                <div>
+                    <label class="block mb-1">اسم الزبون (customer_name)</label>
+                    <input type="text" id="form_customer_name" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                </div>
+                <div>
+                    <label class="block mb-1">رقم الهاتف (phone_number)</label>
+                    <input type="text" id="form_phone_number" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                </div>
+                <div>
+                    <label class="block mb-1">العنوان الكامل (address) - اكتب اسم الولاية متبوعاً بـ "للمنزل" أو "المكتب"</label>
+                    <input type="text" id="form_address" placeholder="مثال: البليدة للمنزل" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                </div>
+                <div>
+                    <label class="block mb-1">اختر المنتج (product_ordered)</label>
+                    <select id="form_product_ordered" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none"></select>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block mb-1">الكمية (quantity)</label>
+                        <input type="number" id="form_quantity" value="1" min="1" required class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                    </div>
+                    <div>
+                        <label class="block mb-1">اللون (selected_color)</label>
+                        <input type="text" id="form_selected_color" value="قياسي" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                    </div>
+                    <div>
+                        <label class="block mb-1">المقاس (selected_size)</label>
+                        <input type="text" id="form_selected_size" value="قياسي" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 bg-slate-50 outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition mt-2 shadow-sm">إرسال وإنشاء الطلب فوراً</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIfkBI0WhxZr1hCyiuYcbVYAy3wXAJxCU",
+            authDomain: "walid-shop.firebaseapp.com",
+            projectId: "walid-shop",
+            storageBucket: "walid-shop.firebasestorage.app",
+            messagingSenderId: "3705207162",
+            appId: "1:3705207162:web:3a7cdfb831c0e3b09c3ec3",
+            measurementId: "G-PGLFSTBVTH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let cachedShippingRates = [];
+        let currentMerchant = null;
+
+        window.toggleSidebar = toggleSidebar;
+        window.openOrderModal = openOrderModal;
+        window.closeOrderModal = closeOrderModal;
+        window.fetchOrders = fetchOrders;
+        window.sendOrder = sendOrder;
+        window.updateStatus = updateStatus;
+        window.deleteOrder = deleteOrder;
+        window.logout = logout;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function openOrderModal() {
+            document.getElementById('orderModal').classList.remove('hidden');
+            loadMerchantProductsToken();
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        const ALLOWED_ROLE = 'merchant'; 
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.replace('login.html');
+                return;
+            }
+            
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (!userDoc.exists()) {
+                    console.error("المستند غير موجود في الفايرستور لهذا الـ UID");
+                    await forceLogout();
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const userRole = userData.role;
+
+                if (userRole !== ALLOWED_ROLE && userRole !== 'admin') {
+                    alert(`عذراً، لا تملك الصلاحية لدخول هذه اللوحة. رتبتك الحالية هي: (${userRole || 'مستخدم عادي'})`);
+                    
+                    const routes = {
+                        'admin': 'admin-dashboard.html',
+                        'reseller': 'admin-control.html',
+                        'merchant': 'merchant-dashboard.html',
+                        'user': 'index.html'
+                    };
+                    window.location.replace(routes[userRole] || 'index.html');
+                    return;
+                }
+
+                if (userRole === 'merchant' && userData.is_approved !== true) {
+                    alert("حسابك قيد المراجعة! لا يمكنك الدخول إلى لوحة التحكم حتى يتم تفعيل حسابك من الإدارة.");
+                    await forceLogout();
+                    return;
+                }
+
+                currentMerchant = { id: user.uid, ...userData };
+                const storeName = currentMerchant.name || 'متجر غير مسمى';
+                document.getElementById('sidebarStoreName').textContent = storeName;
+                document.getElementById('mobileStoreName').textContent = storeName;
+                
+                await fetchOrders();
+                initRealtime();
+
+            } catch (err) {
+                console.error("خطأ أثناء التحقق من الصلاحيات:", err);
+                alert("تأخرت قاعدة البيانات في الرد، يرجى تحديث الصفحة.");
+            }
+        });
+
+        async function forceLogout() {
+            await signOut(auth);
+            window.location.replace('login.html');
+        }
+
+        async function loadMerchantProductsToken() {
+            try {
+                const q = query(collection(db, "products"), where("user_id", "==", currentMerchant.id));
+                const querySnapshot = await getDocs(q);
+                
+                const selectElement = document.getElementById('form_product_ordered');
+                let optionsHTML = "";
+                querySnapshot.forEach((doc) => {
+                    const p = doc.data();
+                    optionsHTML += `<option value="${doc.id}">${p.name} (${p.price} د.ج)</option>`;
+                });
+                selectElement.innerHTML = optionsHTML;
+            } catch (err) {
+                console.error("خطأ أثناء جلب المنتجات للفورم:", err);
+            }
+        }
+
+        async function sendOrder(event) {
+            event.preventDefault();
+            try {
+                const orderData = {
+                    customer_name: document.getElementById('form_customer_name').value,
+                    phone_number: document.getElementById('form_phone_number').value,
+                    address: document.getElementById('form_address').value,
+                    product_ordered: document.getElementById('form_product_ordered').value,
+                    quantity: parseInt(document.getElementById('form_quantity').value) || 1,
+                    selected_color: document.getElementById('form_selected_color').value || 'قياسي',
+                    selected_size: document.getElementById('form_selected_size').value || 'قياسي',
+                    status: 'pending',
+                    merchant: currentMerchant.id,
+                    created: new Date()
+                };
+
+                await addDoc(collection(db, "orders"), orderData);
+                closeOrderModal();
+                document.getElementById('newOrderForm').reset();
+            } catch (error) {
+                console.error("فشل إرسال الطلب عبر السيرفر:", error);
+                alert("⚠️ حدث خطأ أثناء إرسال الطلب.");
+            }
+        }
+
+        async function fetchOrders() {
+            try {
+                if (!currentMerchant) return;
+
+                const shippingQuery = query(collection(db, "shipping_rates"), where("merchant", "==", currentMerchant.id), where("is_active", "==", true));
+                const shippingSnapshot = await getDocs(shippingQuery);
+                cachedShippingRates = [];
+                shippingSnapshot.forEach(doc => {
+                    cachedShippingRates.push({ id: doc.id, ...doc.data() });
+                });
+
+                const ordersQuery = query(collection(db, "orders"), where("merchant", "==", currentMerchant.id));
+                const ordersSnapshot = await getDocs(ordersQuery);
+                
+                let ordersList = [];
+                for (const orderDoc of ordersSnapshot.docs) {
+                    const orderData = orderDoc.data();
+                    
+                    let productData = null;
+                    if (orderData.product_ordered) {
+                        const prodDoc = await getDoc(doc(db, "products", orderData.product_ordered));
+                        if (prodDoc.exists()) {
+                            productData = { id: prodDoc.id, ...prodDoc.data() };
+                        }
+                    }
+                    
+                    ordersList.push({
+                        id: orderDoc.id,
+                        ...orderData,
+                        expand: { product_ordered: productData }
+                    });
+                }
+
+                ordersList.sort((a, b) => {
+                    const dateA = a.created?.seconds ? a.created.toDate() : new Date(a.created || 0);
+                    const dateB = b.created?.seconds ? b.created.toDate() : new Date(b.created || 0);
+                    return dateB - dateA;
+                });
+                
+                renderTable(ordersList);
+            } catch (error) {
+                console.error("خطأ أثناء جلب الطلبات:", error);
+                document.getElementById('orders-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-rose-500 font-bold">⚠️ تعذر تحميل الطلبات. تحقق من الكود المحدث أو الصلاحيات.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function initRealtime() {
+            if (!currentMerchant) return;
+            const q = query(collection(db, "orders"), where("merchant", "==", currentMerchant.id));
+            onSnapshot(q, () => {
+                fetchOrders();
+            }, (err) => console.error("فشل التحديث اللحظي:", err));
+        }
+
+        function getShippingCostFromAddress(addressStr) {
+            let cost = 0;
+            if (!addressStr) return cost;
+
+            const matchedRate = cachedShippingRates.find(rate => addressStr.includes(rate.wilaya_name));
+
+            if (matchedRate) {
+                if (addressStr.includes('للمنزل') || addressStr.includes('home')) {
+                    cost = Number(matchedRate.home_price || 0);
+                } else if (addressStr.includes('المكتب') || addressStr.includes('desk')) {
+                    cost = Number(matchedRate.desk_price || 0);
+                }
+            }
+            return cost;
+        }
+
+        function renderTable(orders) {
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML = "";
+
+            if (orders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 font-normal">لا توجد طلبات واردة لمنتجاتك حتى الآن.</td></tr>`;
+                updateStats(0, 0, 0, 0);
+                return;
+            }
+
+            let total = orders.length;
+            let pending = 0;
+            let completed = 0;
+            let cancelled = 0;
+
+            orders.forEach((order) => {
+                const orderStatus = order.status || 'pending';
+                const orderNumber = order.id.substring(0, 6).toUpperCase(); 
+                const customerName = order.customer_name || 'زبون مجهول';
+                const customerPhone = order.phone_number || 'بلا رقم';
+                const customerAddress = order.address || 'لم يحدد العنوان';
+
+                const expandedProduct = order.expand?.product_ordered;
+                const productTitle = expandedProduct?.name || 'منتج غير متوفر';
+                const productPrice = Number(expandedProduct?.price || 0);
+                const orderQuantity = Number(order.quantity || 1);
+                
+                const shippingCost = getShippingCostFromAddress(customerAddress);
+                const totalFinalPrice = (productPrice * orderQuantity) + shippingCost;
+
+                const chosenColor = order.selected_color || '';
+                const chosenSize = order.selected_size || '';
+
+                let options = [];
+                if (chosenColor && chosenColor !== 'غير محدد' && chosenColor !== 'قياسي') {
+                    options.push(`اللون: <span class="text-slate-900 font-bold">${chosenColor}</span>`);
+                }
+                if (chosenSize && chosenSize !== 'غير محدد' && chosenSize !== 'قياسي') {
+                    options.push(`المقاس: <span class="text-slate-900 font-bold">${chosenSize}</span>`);
+                }
+                
+                const productOptions = options.length > 0 ? options.join(' | ') : '<span class="text-slate-400 font-normal">قياسي</span>';
+
+                if(orderStatus === 'pending') pending++;
+                if(orderStatus === 'completed') completed++;
+                if(orderStatus === 'cancelled' || orderStatus === 'cancel') cancelled++;
+
+                let selectStyle = "bg-amber-50 border-amber-200 text-amber-700 focus:ring-amber-500";
+                if(orderStatus === 'completed') selectStyle = "bg-emerald-50 border-emerald-200 text-emerald-700 focus:ring-emerald-500";
+                if(orderStatus === 'cancelled' || orderStatus === 'cancel') selectStyle = "bg-rose-50 border-rose-200 text-rose-700 focus:ring-rose-500";
+
+                const rowHTML = `
+                    <tr class="hover:bg-slate-50/50 transition duration-150">
+                        <td class="p-4 font-bold text-slate-500">#${orderNumber}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-900">${customerName}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">📱 ${customerPhone} | 📍 ${customerAddress}</div>
+                        </td>
+                        <td class="p-4 font-bold text-blue-600">🛍️ ${productTitle}</td>
+                        <td class="p-4">
+                            <span class="inline-block text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200/50 max-w-[220px] truncate" title="خيارات الطلب">
+                                ${productOptions}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center font-bold text-slate-700">${orderQuantity}</td>
+                        <td class="p-4">
+                            <div class="font-black text-emerald-600 text-sm">${totalFinalPrice.toLocaleString()} د.ج</div>
+                            <div class="text-flat text-slate-400 font-normal mt-0.5" dir="rtl">
+                                (منتج: ${productPrice * orderQuantity} + توصيل: ${shippingCost})
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <select onchange="updateStatus('${order.id}', this.value, this)" class="text-xs font-bold rounded-xl px-3 py-1.5 border focus:outline-none focus:ring-2 cursor-pointer transition-all ${selectStyle}">
+                                <option value="pending" ${orderStatus === 'pending' ? 'selected' : ''}>⏳ قيد الانتظار</option>
+                                <option value="completed" ${orderStatus === 'completed' ? 'selected' : ''}>✅ مكتمل</option>
+                                <option value="cancelled" ${orderStatus === 'cancelled' || orderStatus === 'cancel' ? 'selected' : ''}>❌ ملغى</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteOrder('${order.id}')" class="text-slate-400 hover:text-red-500 text-xs font-bold transition px-2 py-1 hover:bg-red-50 rounded-lg">🗑️ حذف</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', rowHTML);
+            });
+
+            updateStats(total, pending, completed, cancelled);
+        }
+
+        function updateStats(total, pending, completed, cancelled) {
+            document.getElementById('stats-total').innerText = total;
+            document.getElementById('stats-pending').innerText = pending;
+            document.getElementById('stats-completed').innerText = completed;
+            document.getElementById('stats-cancelled').innerText = cancelled;
+        }
+
+        async function updateStatus(recordId, newStatus, selectElement) {
+            if (selectElement) {
+                selectElement.className = `text-xs font-bold rounded-xl px-3 py-1.5 border focus:outline-none focus:ring-2 cursor-pointer transition-all`;
+                if(newStatus === 'completed') selectElement.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-700', 'focus:ring-emerald-500');
+                if(newStatus === 'cancelled') selectElement.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-700', 'focus:ring-rose-500');
+                if(newStatus === 'pending') selectElement.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-700', 'focus:ring-amber-500');
+            }
+
+            try {
+                const orderRef = doc(db, "orders", recordId);
+                const orderSnap = await getDoc(orderRef);
+
+                if (orderSnap.exists()) {
+                    const orderData = orderSnap.data();
+                    const oldStatus = orderData.status || 'pending';
+                    const orderQuantity = Number(orderData.quantity || 1);
+
+                    if (orderData.product_ordered) {
+                        const productRef = doc(db, "products", orderData.product_ordered);
+                        const productSnap = await getDoc(productRef);
+
+                        if (productSnap.exists()) {
+                            const currentStock = Number(productSnap.data().stock) || 0;
+
+                            if (newStatus === 'completed' && oldStatus !== 'completed') {
+                                const newStock = currentStock - orderQuantity;
+                                await updateDoc(productRef, { stock: Math.max(0, newStock) });
+                            }
+                            else if (oldStatus === 'completed' && newStatus !== 'completed') {
+                                const newStock = currentStock + orderQuantity;
+                                await updateDoc(productRef, { stock: newStock });
+                            }
+                        }
+                    }
+                    
+                    await updateDoc(orderRef, { status: newStatus });
+                }
+            } catch (error) {
+                console.error("خطأ أثناء تحديث المخزون والسيرفر:", error);
+                alert("⚠️ حدث خطأ أثناء تحديث حالة الطلب ومزامنة المخزون.");
+                fetchOrders();
+            }
+        }
+
+        async function deleteOrder(recordId) {
+            if(confirm("هل أنت متأكد من حذف هذا الطلب نهائياً؟")) {
+                try {
+                    await deleteDoc(doc(db, "orders", recordId));
+                } catch (error) {
+                    alert("⚠️ تعذر حذف السجل.");
+                }
+            }
+        }
+
+        async function logout() { 
+            try {
+                await forceLogout();
+            } catch (err) {
+                console.error("خطأ أثناء تسجيل الخروج:", err);
+            }
+        }
+    </script>
+</body>
+</html>
