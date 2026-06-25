@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مُهيّئ الفئات التلقائي | Marketplace_dz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // 📝 إعدادات مشروعك (نفس الإعدادات الخاصة بمتجرك)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIfkBI0WhxZr1hCyiuYcbVYAy3wXAJxCU",
+            authDomain: "walid-shop.firebaseapp.com",
+            projectId: "walid-shop",
+            storageBucket: "walid-shop.firebasestorage.app",
+            messagingSenderId: "3705207162",
+            appId: "1:3705207162:web:3a7cdfb831c0e3b09c3ec3",
+            measurementId: "G-PGLFSTBVTH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // قائمة الفئات الجاهزة والمخصصة للجزائر
+        const defaultCategories = [
+            { nameAr: "إلكترونيات وهواتف", nameFr: "Électronique & Téléphones" },
+            { nameAr: "أجهزة كهرومنزلية", nameFr: "Électroménager" },
+            { nameAr: "ملابس وأزياء رجالية", nameFr: "Mode Homme" },
+            { nameAr: "ملابس وأزياء نسائية", nameFr: "Mode Femme" },
+            { nameAr: "عطور ومستحضرات تجميل", nameFr: "Parfums & Cosmétiques" },
+            { nameAr: "مستلزمات المنزل والمطبخ", nameFr: "Maison & Cuisine" },
+            { nameAr: "أطفال ورضع", nameFr: "Bébés & Enfants" },
+            { nameAr: "أكسسوارات وقطع غيار السيارات", nameFr: "Auto & Moto" },
+            { nameAr: "رياضة ولياقة بدنية", nameFr: "Sports & Fitness" },
+            { nameAr: "أدوات ومستلزمات مدرسية", nameFr: "Fournitures Scolaires" }
+        ];
+
+        async function seedCategories() {
+            const statusDiv = document.getElementById("status");
+            statusDiv.innerHTML = "⏳ جاري الفحص والاتصال بـ Firebase...";
+            
+            try {
+                // 1. جلب الجدول للتأكد إن كان فارغاً أم لا
+                const querySnapshot = await getDocs(collection(db, "categories"));
+                
+                if (!querySnapshot.empty) {
+                    statusDiv.innerHTML = `⚠️ الجدول يحتوي بالفعل على <b>${querySnapshot.size}</b> فئات في Firebase! لا داعي لملئه مجدداً منعاً للتكرار.`;
+                    statusDiv.className = "p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl font-bold";
+                    return;
+                }
+
+                // 2. إذا كان فارغاً، نقوم بملئه تلقائياً
+                statusDiv.innerHTML = "🚀 الجدول فارغ! جاري ملء الفئات تلقائياً الآن...";
+                
+                for (const cat of defaultCategories) {
+                    await addDoc(collection(db, "categories"), {
+                        nameAr: cat.nameAr,
+                        nameFr: cat.nameFr
+                    });
+                }
+
+                statusDiv.innerHTML = "🎉 ممتاز! تم إنشاء جدول <b>categories</b> ومِلئه بـ 10 فئات بنجاح تـام!";
+                statusDiv.className = "p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-bold";
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = "❌ حدث خطأ! تحقق من صلاحيات الـ Rules في الفايربيس للجدول <b>categories</b>.";
+                statusDiv.className = "p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl font-bold";
+            }
+        }
+
+        // تشغيل العملية تلقائياً عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', seedCategories);
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 max-w-md w-full text-center">
+        <div class="text-4xl mb-3">🗂️</div>
+        <h1 class="text-xl font-black text-slate-800 mb-2">مُهييء الفئات التلقائي</h1>
+        <p class="text-slate-500 text-xs mb-6">يقوم هذا السكريبت بإنشاء وملء الفئات الأساسية في جدول <code class="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-bold">categories</code> تلقائياً.</p>
+        
+        <div id="status" class="p-4 bg-blue-50 border border-blue-100 text-blue-600 rounded-2xl text-sm">
+            جاري تهيئة النظام...
+        </div>
+        
+        <p class="text-[11px] text-slate-400 mt-6">بمجرد ظهور رسالة النجاح الخضراء، يمكنك إغلاق هذه الصفحة والذهاب لصفحة المنتجات فوراً!</p>
+    </div>
+
+</body>
+</html>

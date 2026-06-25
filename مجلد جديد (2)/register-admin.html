@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب المسؤول العام</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Cairo', sans-serif; }</style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white text-gray-900 p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-6">
+        <div class="text-center">
+            <h1 class="text-2xl font-black text-blue-600">تسجيل حساب مدير جديد</h1>
+            <p class="text-xs text-gray-400 mt-2">قم بإنشاء بريدك الإلكتروني ليكون المتحكم الرئيسي في النظام</p>
+        </div>
+
+        <form id="registerForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-2">الاسم الكامل</label>
+                <input type="text" id="adminName" required placeholder="أدخل اسمك هنا..." class="w-full border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 transition text-right">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-2">البريد الإلكتروني</label>
+                <input type="email" id="adminEmail" required placeholder="example@email.com" class="w-full border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 transition text-right">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 mb-2">كلمة المرور</label>
+                <input type="password" id="adminPassword" required placeholder="••••••••" class="w-full border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 transition text-right">
+            </div>
+            
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                إنشاء حساب ودخول اللوحة 🚀
+            </button>
+        </form>
+
+        <p id="msg" class="text-center text-sm font-bold hidden p-3 rounded-xl"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات الفايربيز الخاصة بمشروعك وليد شوب
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIfkBI0WhxZr1hCyiuYcbVYAy3wXAJxCU",
+            authDomain: "walid-shop.firebaseapp.com",
+            projectId: "walid-shop",
+            storageBucket: "walid-shop.firebasestorage.app",
+            messagingSenderId: "3705207162",
+            appId: "1:3705207162:web:3a7cdfb831c0e3b09c3ec3",
+            measurementId: "G-PGLFSTBVTH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // دالة لتعريب الأخطاء لرفع جودة الاستخدام
+        function getFriendlyErrorMessage(code) {
+            switch (code) {
+                case 'auth/email-already-in-use':
+                    return 'هذا البريد الإلكتروني مسجل كمدير أو تاجر مسبقاً!';
+                case 'auth/invalid-email':
+                    return 'صيغة البريد الإلكتروني غير صحيحة.';
+                case 'auth/weak-password':
+                    return 'كلمة المرور ضعيفة جداً، يرجى كتابة 6 أحرف أو أرقام على الأقل.';
+                default:
+                    return 'حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة مجدداً.';
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('adminName').value;
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const msg = document.getElementById('msg');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // تهيئة حالة الواجهة أثناء التحميل
+            msg.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="animate-spin">⏳</span> جاري تأسيس حساب المسؤول...`;
+
+            try {
+                // 1. إنشاء الحساب الأساسي في نظام الحماية والتوثيق (Firebase Auth)
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                // 2. الحفظ المباشر داخل جدول ومستند الـ users بالفايرستور متوافقاً مع السيستم بالكامل
+                await setDoc(doc(db, "users", uid), {
+                    uid: uid,
+                    name: name,
+                    email: email,
+                    role: "admin",           // تعيين رتبة المسؤول العام
+                    is_approved: true,       // المسؤول مفعل تلقائياً دائماً
+                    avatar: "",              // افتراضي فارغ للمدير
+                    createdAt: new Date().toISOString()
+                });
+
+                // نجاح التأسيس
+                msg.textContent = "🎉 تم إنشاء حسابك كمسؤول بنجاح! جاري تحويلك لوحة القيادة...";
+                msg.className = "text-center text-sm font-bold text-green-700 bg-green-50 p-3 rounded-xl border border-green-200";
+                msg.classList.remove('hidden');
+
+                // تحويل مباشر إلى لوحة تحكم المسؤول بعد ثانيتين
+                setTimeout(() => {
+                    window.location.replace('admin-dashboard.html');
+                }, 2000);
+
+            } catch (error) {
+                console.error("Admin Register Error:", error);
+                msg.textContent = "❌ " + getFriendlyErrorMessage(error.code);
+                msg.className = "text-center text-sm font-bold text-red-700 bg-red-50 p-3 rounded-xl border border-red-200";
+                msg.classList.remove('hidden');
+                
+                // إعادة تفعيل الزر في حال حدوث خطأ لإتاحة المحاولة مجدداً
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `إنشاء حساب ودخول اللوحة 🚀`;
+            }
+        });
+    </script>
+</body>
+</html>
