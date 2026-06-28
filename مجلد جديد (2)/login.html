@@ -83,7 +83,15 @@
             <div class="relative">
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
                 <input type="password" id="password" required placeholder="كلمة المرور" class="w-full border border-gray-200 bg-gray-50/50 rounded-2xl pl-12 pr-11 py-3.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm font-semibold transition text-right">
-                <button type="button" onclick="togglePasswordVisibility()" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition text-sm select-none" id="eyeBtn">
+                <button type="button" onclick="togglePasswordVisibility('password', 'eyeBtn')" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition text-sm select-none" id="eyeBtn">
+                    👁️
+                </button>
+            </div>
+
+            <div id="confirmPasswordFields" class="relative hidden">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
+                <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور" class="w-full border border-gray-200 bg-gray-50/50 rounded-2xl pl-12 pr-11 py-3.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-xs sm:text-sm font-semibold transition text-right">
+                <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'confirmEyeBtn')" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition text-sm select-none" id="confirmEyeBtn">
                     👁️
                 </button>
             </div>
@@ -104,11 +112,10 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAIfkBI0WhxZr1hCyiuYcbVYAy3wXAJxCU",
@@ -123,13 +130,12 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         let isLoginMode = true;
 
-        window.togglePasswordVisibility = () => {
-            const passwordInput = document.getElementById('password');
-            const eyeBtn = document.getElementById('eyeBtn');
+        window.togglePasswordVisibility = (inputId, btnId) => {
+            const passwordInput = document.getElementById(inputId);
+            const eyeBtn = document.getElementById(btnId);
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeBtn.textContent = '🕶️';
@@ -156,11 +162,13 @@
             document.getElementById('formTitle').textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
             document.getElementById('submitBtn').textContent = isLoginMode ? 'دخول' : 'إنشاء حساب جديد';
             document.getElementById('registerFields').classList.toggle('hidden', isLoginMode);
+            document.getElementById('confirmPasswordFields').classList.toggle('hidden', isLoginMode);
             document.getElementById('toggleText').textContent = isLoginMode ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟';
             document.getElementById('errorMessage').classList.add('hidden'); 
             
             document.getElementById('phone').required = !isLoginMode;
             document.getElementById('name').required = !isLoginMode;
+            document.getElementById('confirmPassword').required = !isLoginMode;
 
             if (isLoginMode) {
                 document.getElementById('avatarInput').value = '';
@@ -169,6 +177,7 @@
                 document.getElementById('avatarPlaceholder').classList.remove('hidden');
                 document.getElementById('phone').value = '';
                 document.getElementById('name').value = '';
+                document.getElementById('confirmPassword').value = '';
             }
         };
 
@@ -181,6 +190,16 @@
                 window.toggleMode(); 
             }, 150);
         };
+
+        // دالة مساعدة لتحويل الصورة إلى نص مشفر لحفظها مجاناً في الفايرستور
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
 
         function getFriendlyErrorMessage(code) {
             switch (code) {
@@ -197,7 +216,7 @@
                 case 'auth/network-request-failed':
                     return 'فشل الاتصال بالشبكة، يرجى التحقق من اتصال الإنترنت لديك.';
                 default:
-                    return 'حدث خطأ غير متوقع في الخادم، يرجى المحاولة لاحقاً.';
+                    return 'حدث خطأ أثناء الاتصال بقاعدة البيانات، يرجى إعادة المحاولة.';
             }
         }
 
@@ -211,6 +230,17 @@
             const submitBtn = document.getElementById('submitBtn');
             
             errorMessage.classList.add('hidden'); 
+
+            if (!isLoginMode) {
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                if (password !== confirmPassword) {
+                    errorTitle.innerHTML = "⚠️ خطأ في كلمة المرور";
+                    errorDetails.textContent = "كلمتا المرور غير متطابقتين، يرجى التأكد وإعادة الكتابة.";
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+            }
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<span class="inline-block animate-spin">⏳</span> جاري التحقق...`;
 
@@ -219,72 +249,83 @@
                     const userCredential = await signInWithEmailAndPassword(auth, email, password);
                     const uid = userCredential.user.uid;
 
-                    // جلب مستند المستخدم من الفايرستور لمعرفة الرتبة
                     const userDocRef = doc(db, "users", uid);
-                    const userDoc = await getDoc(userDocRef);
+                    let userDoc = await getDoc(userDocRef);
                     
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        const userRole = userData.role || 'user';
-                        const isApproved = userData.is_approved;
+                    if (!userDoc.exists()) {
+                        await setDoc(userDocRef, {
+                            uid: uid,
+                            name: email.split('@')[0],
+                            email: email,
+                            phone: "",
+                            role: "merchant",
+                            avatar: "",
+                            is_approved: false,
+                            emailVisibility: false,
+                            createdAt: new Date().toISOString()
+                        });
+                        userDoc = await getDoc(userDocRef);
+                    }
+                    
+                    const userData = userDoc.data();
+                    const userRole = userData.role || 'user';
+                    const isApproved = userData.is_approved;
 
-                        if (userRole === 'merchant' && isApproved !== true) {
-                            errorTitle.innerHTML = "⚠️ الحساب قيد المراجعة";
-                            errorDetails.textContent = "حسابك كتاجر لم يتم تفعيله بعد من قِبل إدارة المنصة أو المسوق الشريك. يرجى الانتظار.";
-                            errorMessage.classList.remove('hidden');
-                            await signOut(auth);
-                            return;
-                        }
-
-                        // مصفوفة التوجيه الآمنة والمتطابقة مع رغبتك في توجيه المسوقين لصفحة approve-vendors.html
-                        const routes = { 
-                            'admin': 'admin-dashboard.html',
-                            'reseller': 'approve-vendors.html', // تم تعديلها هنا فوراً لتصبح الصفحة المطلوبة للمسوق
-                            'merchant': 'merchant-dashboard.html',
-                            'user': 'index.html' 
-                        };
-
-                        const targetPage = routes[userRole] || 'index.html';
-                        
-                        // التوجيه الفوري والآمن للمستخدم حسب رتبته وحساباته
-                        window.location.replace(targetPage);
-                        
-                    } else {
-                        errorTitle.innerHTML = "⚠️ خطأ في قاعدة البيانات";
-                        errorDetails.textContent = "تم تسجيل دخولك بنجاح، لكن لم نجد ملفاً لرتبتك بجدول (users) بداخل الفايرستور.";
+                    if (userRole === 'merchant' && isApproved !== true) {
+                        errorTitle.innerHTML = "⚠️ الحساب قيد المراجعة";
+                        errorDetails.textContent = "حسابك كتاجر لم يتم تفعيله بعد من قِبل إدارة المنصة أو المسوق الشريك يرجا التوصل مع صاحب الاعلان او الذي وجهك الى هذه المنصة ليفعل لك الحساب. يرجى الانتظار.";
                         errorMessage.classList.remove('hidden');
                         await signOut(auth);
+                        return;
                     }
+
+                    const routes = { 
+                        'admin': 'admin-dashboard.html',
+                        'reseller': 'approve-vendors.html', 
+                        'merchant': 'merchant-dashboard.html',
+                        'user': 'index.html' 
+                    };
+
+                    const targetPage = routes[userRole] || 'index.html';
+                    window.location.replace(targetPage);
+                        
                 } else {
-                    // كود إنشاء حساب تاجر جديد
                     const name = document.getElementById('name').value;
                     const phone = document.getElementById('phone').value;
                     const avatarFile = document.getElementById('avatarInput').files[0];
 
+                    // 1. إنشاء الحساب في نظام الـ Auth (مضمون وسينجح فوراً)
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const uid = userCredential.user.uid;
+
                     let avatarUrl = "";
 
+                    // 2. تحويل الصورة الشخصية لنص مشفر (Base64) لرفعها مجاناً وبأمان داخل الفايرستور مباشرة
                     if (avatarFile) {
-                        const storageRef = ref(storage, `avatars/${uid}_${avatarFile.name}`);
-                        await uploadBytes(storageRef, avatarFile);
-                        avatarUrl = await getDownloadURL(storageRef);
+                        try {
+                            avatarUrl = await convertImageToBase64(avatarFile);
+                        } catch (imgErr) {
+                            console.error("خطأ في تجهيز الصورة:", imgErr);
+                        }
                     }
 
-                    // تخزين البيانات كاملة بالفايرستور برتبة تاجر افتراضية وبحالة غير مفعلة
+                    // 3. كتابة كافة البيانات (الاسم، الهاتف، الصورة النصية) بالكامل في Firestore
                     await setDoc(doc(db, "users", uid), {
                         uid: uid,
                         name: name,
                         email: email,
                         phone: phone,
                         role: "merchant",
-                        avatar: avatarUrl,
+                        avatar: avatarUrl, // سيتم حفظ الصورة هنا بنجاح كـ Base64 string
                         is_approved: false,
                         emailVisibility: false,
                         createdAt: new Date().toISOString()
                     });
 
-                    // إظهار مودال نجاح العملية
+                    // 4. تسجيل خروج تلقائي لحين موافقة الإدارة على التاجر
+                    await signOut(auth);
+
+                    // 5. إظهار نافذة النجاح المنبثقة فوراً وبدون أي تعليق
                     const modal = document.getElementById('successModal');
                     modal.classList.remove('hidden');
                     setTimeout(() => {

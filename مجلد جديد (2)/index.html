@@ -12,68 +12,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Cairo', sans-serif; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; }
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #064e3b 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #064e3b 100%);
         }
+        /* إخفاء شريط التمرير الأفقي لقائمة الفئات على الهواتف */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-50/50 text-gray-800 min-h-screen flex flex-col justify-between">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between pb-16 sm:pb-0">
 
-    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100 transition-all duration-300">
-        <div class="container mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+    <header class="bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100/80 transition-all duration-300 px-2 sm:px-0">
+        <div class="container mx-auto px-4 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
             
             <div class="flex justify-between items-center w-full sm:w-auto gap-4">
-                <a href="index.html" class="flex items-center h-12 sm:h-14 group">
+                <a href="index.html" class="flex items-center h-10 sm:h-12 group">
                     <div id="logoContainer" class="h-full flex items-center">
-                        <img src="Image/logo.png" alt="Walid Market" class="h-full w-auto object-contain transition-transform group-hover:scale-105" 
-                             onerror="window.showTextLogo()">
+                        <div class="flex items-center gap-2 bg-gradient-to-r from-blue-950 to-blue-900 text-white px-4 py-2 rounded-2xl shadow-md shadow-blue-900/10">
+                            <span class="text-lg sm:text-xl animate-pulse">🛒</span>
+                            <span class="font-black tracking-wide text-sm sm:text-base">Walid<span class="text-emerald-400">Market</span></span>
+                        </div>
                     </div>
                 </a>
                 
-                <a href="login.html" class="sm:hidden px-4 py-2 rounded-xl font-bold text-xs bg-blue-50 text-blue-900 hover:bg-blue-100 transition-all duration-300">
-                    تسجيل دخول
+                <a href="login.html" class="hidden sm:inline-block px-5 py-2.5 rounded-2xl font-bold text-sm bg-blue-50 text-blue-900 hover:bg-blue-100 transition-all duration-300">
+                    تسجيل دخول 🔐
                 </a>
             </div>
             
             <div class="w-full sm:flex-grow sm:max-w-md relative">
                 <input type="text" id="searchInput" placeholder="ابحث عن منتجك المفضل الآن..." 
-                       class="w-full pl-4 pr-11 py-2.5 sm:py-3 rounded-2xl border border-gray-200 outline-none focus:border-green-600 focus:ring-4 focus:ring-green-500/10 bg-gray-50/80 transition-all text-xs sm:text-sm font-semibold">
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg sm:text-xl text-gray-400">🔍</span>
-            </div>
-
-            <div class="hidden sm:flex items-center gap-3">
-                <a href="login.html" class="px-5 py-2.5 rounded-2xl font-bold text-sm bg-blue-50 text-blue-900 hover:bg-blue-100 transition-all duration-300">
-                    تسجيل دخول
-                </a>
+                       class="w-full pl-4 pr-12 py-3 rounded-2xl border border-gray-200/80 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/10 bg-gray-50/80 focus:bg-white transition-all text-xs sm:text-sm font-semibold shadow-inner">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-base sm:text-lg text-gray-400">🔍</span>
             </div>
         </div> 
     </header>
 
-    <section class="gradient-bg text-white py-8 sm:py-14 px-4 text-center relative overflow-hidden shadow-inner">
-        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        <div class="max-w-3xl mx-auto relative z-10 space-y-3 sm:space-y-4">
-            <span class="bg-green-500/20 text-green-300 border border-green-500/30 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wide animate-pulse inline-block">
-                ✨ منصة وليد ماركت المعتمدة
+    <section class="gradient-bg text-white py-10 sm:py-16 px-4 text-center relative overflow-hidden shadow-inner mx-0 sm:mx-4 sm:my-4 sm:rounded-3xl">
+        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
+        
+        <div class="max-w-3xl mx-auto relative z-10 space-y-3.5">
+            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-wide animate-pulse inline-block shadow-sm">
+                ✨ منصة وليد ماركت الجزائرية المعتمدة
             </span>
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black leading-tight">تسوق بأمان والدفع عند <span class="text-green-400">الاستلام</span></h1>
-            <p class="text-blue-100/80 text-xs sm:text-base max-w-lg mx-auto font-medium">
-                اكتشف تشكيلتنا الحصرية المميزة. جودة عالية، أسعار تنافسية، وتوصيل سريع مباشرة إلى باب منزلك.
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black leading-tight tracking-wide">
+                تسوق بأمان والدفع عند <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-300 drop-shadow">الاستلام</span>
+            </h1>
+            <p class="text-blue-100/80 text-xs sm:text-base max-w-md sm:max-w-xl mx-auto font-medium leading-relaxed">
+                اكتشف تشكيلتنا الحصرية المميزة بضمان كامل 58 ولاية. جودة عالية، أسعار تنافسية، وتوصيل سريع مباشرة إلى باب منزلك.
             </p>
         </div>
     </section>
 
-    <main class="container mx-auto px-3 sm:px-4 py-6 sm:py-10 flex-grow">
+    <section class="container mx-auto px-4 mt-6">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="text-sm">🔥</span>
+            <h3 class="text-xs sm:text-sm font-bold text-gray-500">التصنيفات السريعة</h3>
+        </div>
+        <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-3 select-none" id="categoriesBar">
+            <button data-id="all" class="category-btn shrink-0 bg-emerald-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/10 border border-transparent transition-all">
+                كل التصنيفات 🛍️
+            </button>
+            </div>
+    </section>
+
+    <main class="container mx-auto px-3 sm:px-4 py-2 sm:py-4 flex-grow">
         
-        <div class="mb-6 sm:mb-10 bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100/80 flex flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <span class="p-1.5 sm:p-2 bg-green-50 text-green-600 rounded-xl text-lg sm:text-xl">🎯</span>
+        <div class="mb-6 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl text-base sm:text-lg shadow-sm">🎯</span>
                 <div>
-                    <h2 class="font-bold text-gray-800 text-xs sm:text-base">التصنيفات</h2>
-                    <p class="text-[10px] text-gray-400 hidden sm:block">فلترة سريعة للوصول لطلبك</p>
+                    <h2 class="font-extrabold text-gray-800 text-xs sm:text-sm">تصفية المنتجات</h2>
+                    <p class="text-[10px] text-gray-400 hidden sm:block">اختر الفئة لعرض منتجاتها فوراً</p>
                 </div>
             </div>
-            <select id="categoryFilter" class="p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-gray-200 outline-none w-40 sm:w-56 text-xs sm:text-sm font-semibold bg-gray-50/50 focus:border-green-600 cursor-pointer">
+            <select id="categoryFilter" class="p-2 sm:p-3 rounded-xl border border-gray-200 outline-none w-36 sm:w-56 text-xs sm:text-sm font-bold bg-gray-50/50 focus:border-emerald-600 focus:bg-white transition-all cursor-pointer">
                 <option value="all">كل التصنيفات</option>
             </select>
         </div>
@@ -82,11 +98,30 @@
             </div>
     </main>
 
-    <footer class="bg-white border-t border-gray-100 py-4 sm:py-6 text-center text-[10px] sm:text-xs font-semibold text-gray-400">
-        <p>&copy; 2026 <span class="text-blue-900 font-bold">Walid Market</span>. جميع الحقوق محفوظة.</p>
-    </footer>
+    <div class="sm:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex justify-around items-center py-2 z-50">
+        <a href="index.html" class="flex flex-col items-center gap-1 text-emerald-600">
+            <span class="text-xl">🏠</span>
+            <span class="text-[9px] font-bold">الرئيسية</span>
+        </a>
+        <a href="#categoriesBar" class="flex flex-col items-center gap-1 text-gray-450 hover:text-emerald-600 transition">
+            <span class="text-xl">🗂️</span>
+            <span class="text-[9px] font-bold">الأقسام</span>
+        </a>
+        <a href="checkout.html" class="relative flex flex-col items-center gap-1 text-gray-450 hover:text-emerald-600 transition">
+            <span class="text-xl">🛒</span>
+            <span class="text-[9px] font-bold">السلة</span>
+            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-black px-1 rounded-full">0</span>
+        </a>
+        <a href="login.html" class="flex flex-col items-center gap-1 text-gray-450 hover:text-emerald-600 transition">
+            <span class="text-xl">👤</span>
+            <span class="text-[9px] font-bold">حسابي</span>
+        </a>
+    </div>
 
-    <script type="module">
+    <footer class="hidden sm:block bg-white border-t border-gray-100 py-6 text-center text-[11px] font-bold text-gray-400">
+        <p>&copy; 2026 <span class="text-blue-950 font-black">Walid Market</span>. جميع الحقوق محفوظة.</p>
+    </footer>
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -161,10 +196,7 @@
                     <div class="p-3 sm:p-5 pt-0 space-y-1.5 sm:space-y-2.5">
                         <a href="product-details.html?id=${p.id}" class="w-full bg-gray-50 text-gray-600 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs hover:bg-gray-100 text-center transition-colors duration-300 block">
                             🔎 التفاصيل
-                        </a>
-                        <a href="checkout.html?productId=${p.id}" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs hover:from-green-700 hover:to-emerald-700 text-center transition-all duration-300 block shadow-md shadow-green-600/20">
-                            ⚡ شراء الآن
-                        </a>
+                             </a>
                     </div>
                 </div>
                 `;
@@ -223,5 +255,5 @@
         // تشغيل التطبيق عند تحميل الصفحة
         init();
     </script>
-</body>
+    </body>
 </html>
